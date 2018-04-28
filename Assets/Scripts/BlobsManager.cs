@@ -36,6 +36,9 @@ public class BlobsManager : MonoBehaviour
     private Vector4[] p = new Vector4[100];
     private float[] m = new float[100];
 
+    [Range(0.0001f, 1f)]
+    public float scaleRect;
+
     void Start()
     {
         rect = GetComponent<RectTransform>().rect;
@@ -45,6 +48,7 @@ public class BlobsManager : MonoBehaviour
     void FixedUpdate()
     {
         InputHandler();
+        AdjustScalerFactor();
         AdjustBlobsVelocity();
         AdjustBlobsPosition();
         DesorbeBlobsMass();
@@ -52,6 +56,12 @@ public class BlobsManager : MonoBehaviour
         ApplySpaceBlobsFriction();
         fixArrayIndices();
         UpdateMaterial();
+    }
+
+    private void AdjustScalerFactor()
+    {
+        GameObject canv = transform.parent.gameObject;
+        canv.GetComponent<CanvasScaler>().scaleFactor = scaleRect;
     }
 
     private void DesorbeBlobsMass()
@@ -129,15 +139,15 @@ public class BlobsManager : MonoBehaviour
         for (int i = 0; i < blobsCount; i++)
         {
             var curBlob = blobs[i];
-
-            Vector2 totalAcceleration = Vector2.zero;
+            var totalAcceleration = Vector2.zero;
             for (int j = 0; j < blobsCount; j++)
             {
                 if (i != j)
                 {
-                    var otherBlob = blobs[j];
-                    Vector2 dir = new Vector2(otherBlob.transform.localPosition.x - curBlob.transform.localPosition.x,
+                    var otherBlob = blobs[j];                
+                    var dir = new Vector2(otherBlob.transform.localPosition.x - curBlob.transform.localPosition.x,
                                             otherBlob.transform.localPosition.y - curBlob.transform.localPosition.y);
+
                     if (dir.magnitude > epsPosForce)
                     {
                         totalAcceleration += 1e+4f * gCoef * otherBlob.GetComponent<BlobController>().mass * dir.normalized / dir.sqrMagnitude;
@@ -153,11 +163,13 @@ public class BlobsManager : MonoBehaviour
                     }
                 }
             }
+
             if (gravity)
             {
                 curBlob.GetComponent<BlobController>().UpdateVelocity(totalAcceleration);
             }
-            curBlob.GetComponent<BlobController>().AdjustVelocity(rect);
+
+            curBlob.GetComponent<BlobController>().AdjustVelocity(rect, scaleRect);
         }
     }
 
@@ -165,7 +177,7 @@ public class BlobsManager : MonoBehaviour
     {
         for (int i = 0; i < blobsCount; i++)
         {
-            blobs[i].GetComponent<BlobController>().AdjustPosition(rect);
+            blobs[i].GetComponent<BlobController>().AdjustPosition(rect, scaleRect);
         }
     }
 

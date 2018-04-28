@@ -281,6 +281,7 @@ MonoBehaviour:
   epsPosForce: 50.7
   spaceFriction: 0.0355
   blobPrefab: {fileID: 1239446547040140, guid: 6fc12a8446ad91440b8b4df35b28af25, type: 2}
+  scaleRect: 1
 --- !u!1 &904999950
 GameObject:
   m_ObjectHideFlags: 0

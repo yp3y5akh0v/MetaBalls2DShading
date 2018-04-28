@@ -2,17 +2,15 @@
 {
 	Properties
 	{
-		_ScaleBlob("Scale Blob", Range(1, 100)) = 1
+		_ScaleBlob("Scale Blob", Range(1, 1000)) = 1
 	}
 
 	SubShader
 	{
-		Tags { "RenderType" = "Opaque" "Queue" = "Transparent" }
+		Tags { "RenderType" = "Opaque" }
 
 		CGPROGRAM
-		#pragma target 4.0
 		#pragma surface surf Lambert vertex:vert
-		#include "UnityCG.cginc"
 
 		int blobsCount;
 		float blobsRadius[100];

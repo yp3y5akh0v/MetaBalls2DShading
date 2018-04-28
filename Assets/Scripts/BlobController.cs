@@ -17,43 +17,49 @@ public class BlobController : MonoBehaviour {
     [Range(0f, 0.01f)]
     public float radiusCompressionRate;
 
-    public void AdjustVelocity(Rect rect)
+    public void AdjustVelocity(Rect rect, float scalerRect)
     {
         if (isAlive)
         {
-            if (transform.localPosition.x < -rect.width / 2 || transform.localPosition.x > rect.width / 2)
+            float w = rect.width / 2 / scalerRect;
+            float h = rect.height / 2 / scalerRect;
+
+            if (transform.localPosition.x <= -w || transform.localPosition.x >= w)
             {
                 velocity.x = -velocity.x;
             }
-            if (transform.localPosition.y < -rect.height / 2 || transform.localPosition.y > rect.height / 2)
+            if (transform.localPosition.y <= -h || transform.localPosition.y >= h)
             {
                 velocity.y = -velocity.y;
             }
         }
     }
 
-    public void AdjustPosition(Rect rect)
+    public void AdjustPosition(Rect rect, float scalerRect)
     {
         if (isAlive)
         {
-            if (transform.localPosition.x < -rect.width / 2)
+            float w = rect.width / 2 / scalerRect;
+            float h = rect.height / 2 / scalerRect;
+
+            if (transform.localPosition.x < -w)
             {
-                transform.localPosition = new Vector3(-rect.width / 2, transform.localPosition.y, transform.localPosition.z);
+                transform.localPosition = new Vector3(-w, transform.localPosition.y, transform.localPosition.z);
             }
 
-            if (transform.localPosition.x > rect.width / 2)
+            if (transform.localPosition.x > w)
             {
-                transform.localPosition = new Vector3(rect.width / 2, transform.localPosition.y, transform.localPosition.z);
+                transform.localPosition = new Vector3(w, transform.localPosition.y, transform.localPosition.z);
             }
 
-            if (transform.localPosition.y < -rect.height / 2)
+            if (transform.localPosition.y < -h)
             {
-                transform.localPosition = new Vector3(transform.localPosition.x, -rect.height / 2, transform.localPosition.z);
+                transform.localPosition = new Vector3(transform.localPosition.x, -h, transform.localPosition.z);
             }
 
-            if (transform.localPosition.y > rect.height / 2)
+            if (transform.localPosition.y > h)
             {
-                transform.localPosition = new Vector3(transform.localPosition.x, rect.height / 2, transform.localPosition.z);
+                transform.localPosition = new Vector3(transform.localPosition.x, h, transform.localPosition.z);
             }
         }
     }
