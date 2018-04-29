@@ -4,16 +4,25 @@ using UnityEngine.UI;
 [RequireComponent(typeof(BlobController))]
 public class BlobsManager : MonoBehaviour
 {
-    [Range(0.1f, 100f)]
-    public float blobsMaxRadius;
-
     [Range(0f, 100f)]
+    public float blobsInitVelocity;
+
+    [Range(0.01f, 10000f)]
     public float blobsMaxVelocity;
 
     [Range(0.1f, 100f)]
+    public float blobsInitRadius;
+
+    [Range(0.01f, 500f)]
+    public float blobsMaxRadius;
+    
+    [Range(0.1f, 100f)]
+    public float blobsInitMass;
+
+    [Range(0.01f, 10000f)]
     public float blobsMaxMass;
 
-    public bool gravity;
+    public bool initGravity;
 
     [Range(0f, 100f)]
     public float gCoef;
@@ -21,7 +30,7 @@ public class BlobsManager : MonoBehaviour
     [Range(0.01f, 100f)]
     public float epsPosForce;
 
-    [Range(0f, 0.1f)]
+    [Range(0f, 1f)]
     public float spaceFriction;
 
     public GameObject blobPrefab;
@@ -91,15 +100,18 @@ public class BlobsManager : MonoBehaviour
     private void fixArrayIndices()
     {
         int i = 0;
-        while(i < blobsCount)
+        while (i < blobsCount)
         {
             if (!blobs[i].GetComponent<BlobController>().isAlive)
             {
                 var curBlob = blobs[i];
-                for(int j = i + 1; j < blobsCount; j++)
+                curBlob.SetActive(false);
+
+                for (int j = i + 1; j < blobsCount; j++)
                 {
                     blobs[j - 1] = blobs[j];
                 }
+
                 --blobsCount;
                 Destroy(curBlob);
             }
@@ -139,38 +151,38 @@ public class BlobsManager : MonoBehaviour
         for (int i = 0; i < blobsCount; i++)
         {
             var curBlob = blobs[i];
-            var totalAcceleration = Vector2.zero;
+            var totalAcceleration = Vector3.zero;
             for (int j = 0; j < blobsCount; j++)
             {
                 if (i != j)
                 {
-                    var otherBlob = blobs[j];                
-                    var dir = new Vector2(otherBlob.transform.localPosition.x - curBlob.transform.localPosition.x,
-                                            otherBlob.transform.localPosition.y - curBlob.transform.localPosition.y);
+                    var otherBlob = blobs[j];
+                    var dir = otherBlob.transform.localPosition - curBlob.transform.localPosition;
 
-                    if (dir.magnitude > epsPosForce)
+                    if (dir.magnitude > epsPosForce && otherBlob.GetComponent<BlobController>().localGravity)
                     {
                         totalAcceleration += 1e+4f * gCoef * otherBlob.GetComponent<BlobController>().mass * dir.normalized / dir.sqrMagnitude;
                     }
 
-                    float deltaPos = dir.magnitude - (curBlob.GetComponent<BlobController>().radius + otherBlob.GetComponent<BlobController>().radius);
-                    if (deltaPos < 0)
+                    float deltaPos = DeltaPosCalculate(curBlob, otherBlob);
+                    if (deltaPos < 0f)
                     {
-                        curBlob.GetComponent<BlobController>().AbsorbeMass();
-                        curBlob.GetComponent<BlobController>().ExpanseRadius();
-                        otherBlob.GetComponent<BlobController>().AbsorbeMass();
-                        otherBlob.GetComponent<BlobController>().ExpanseRadius();
+                        curBlob.GetComponent<BlobController>().AbsorbeMass(blobsMaxMass);
+                        curBlob.GetComponent<BlobController>().ExpanseRadius(blobsMaxRadius);
+                        otherBlob.GetComponent<BlobController>().AbsorbeMass(blobsMaxMass);
+                        otherBlob.GetComponent<BlobController>().ExpanseRadius(blobsMaxRadius);
                     }
                 }
             }
-
-            if (gravity)
-            {
-                curBlob.GetComponent<BlobController>().UpdateVelocity(totalAcceleration);
-            }
-
+            curBlob.GetComponent<BlobController>().UpdateVelocity(totalAcceleration, blobsMaxVelocity);
             curBlob.GetComponent<BlobController>().AdjustVelocity(rect, scaleRect);
         }
+    }
+
+    private float DeltaPosCalculate(GameObject a, GameObject b)
+    {
+        var dir = b.transform.localPosition - a.transform.localPosition;
+        return dir.magnitude - (a.GetComponent<BlobController>().radius + b.GetComponent<BlobController>().radius);
     }
 
     private void AdjustBlobsPosition()
@@ -179,7 +191,7 @@ public class BlobsManager : MonoBehaviour
         {
             blobs[i].GetComponent<BlobController>().AdjustPosition(rect, scaleRect);
         }
-    }
+    } 
 
     private void InputHandler()
     {
@@ -188,14 +200,15 @@ public class BlobsManager : MonoBehaviour
             GameObject blob = Instantiate(blobPrefab, 
                 new Vector3(Random.Range(-rect.width / 2, rect.width / 2), Random.Range(-rect.height / 2, rect.height / 2), transform.parent.position.z),
                 Quaternion.identity);
-            blob.GetComponent<BlobController>().velocity = new Vector2(Random.value, Random.value).normalized * Random.Range(0, blobsMaxVelocity);
-            blob.GetComponent<BlobController>().radius = Random.Range(0, blobsMaxRadius);
-            blob.GetComponent<BlobController>().mass = Random.Range(0, blobsMaxMass);
+            blob.GetComponent<BlobController>().velocity = new Vector3(Random.value, Random.value, 0f).normalized * Random.Range(0, blobsInitVelocity);
+            blob.GetComponent<BlobController>().radius = Random.Range(0, blobsInitRadius);
+            blob.GetComponent<BlobController>().mass = Random.Range(0, blobsInitRadius);
             blob.GetComponent<BlobController>().massAbsorbingRate = Random.Range(0f, 0.01f);
             blob.GetComponent<BlobController>().massDesorbingRate = Random.Range(0f, 0.01f);
             blob.GetComponent<BlobController>().radiusCompressionRate = Random.Range(0f, 0.01f);
             blob.GetComponent<BlobController>().radiusExpansionRate = Random.Range(0f, 0.01f);
             blob.GetComponent<BlobController>().isAlive = true;
+            blob.GetComponent<BlobController>().localGravity = initGravity;
             blob.transform.localScale *= blob.GetComponent<BlobController>().radius;
             blob.transform.parent = transform;
             blobs[blobsCount++] = blob;

@@ -273,13 +273,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6068dfcde938ee34f96594582f90949c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  blobsInitVelocity: 100
+  blobsMaxVelocity: 1000
+  blobsInitRadius: 100
   blobsMaxRadius: 100
-  blobsMaxVelocity: 100
-  blobsMaxMass: 100
-  gravity: 1
-  gCoef: 10.9
-  epsPosForce: 50.7
-  spaceFriction: 0.0355
+  blobsInitMass: 100
+  blobsMaxMass: 1000
+  initGravity: 0
+  gCoef: 6.1
+  epsPosForce: 22.2
+  spaceFriction: 0.151
   blobPrefab: {fileID: 1239446547040140, guid: 6fc12a8446ad91440b8b4df35b28af25, type: 2}
   scaleRect: 1
 --- !u!1 &904999950
